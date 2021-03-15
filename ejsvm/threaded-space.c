@@ -97,22 +97,6 @@ header_t *get_shadow(void *ptr)
 }
 #endif /* GC_DEBUG */
 
-STATIC_INLINE bool is_hidden_class(cell_type_t type)
-{
-  switch(type) {
-  case CELLT_HASHTABLE:
-  case CELLT_HASH_BODY:
-  case CELLT_HASH_CELL:
-  case CELLT_TRANSITIONS:
-  case CELLT_PROPERTY_MAP:
-  case CELLT_SHAPE:
-  case CELLT_PROPERTY_MAP_LIST: // ???
-    return true;
-  default:
-    return false;
-  }
-}
-
 /*
  * Returns a pointer to the first address of the memory area
  * available to the VM. The header precedes the area.

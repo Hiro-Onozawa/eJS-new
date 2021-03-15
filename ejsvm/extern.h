@@ -412,6 +412,7 @@ extern uint64_t pertype_live_bytes[];
 extern uint64_t pertype_live_count[];
 extern uint64_t pertype_collect_bytes[];
 extern uint64_t pertype_collect_count[];
+extern size_t gc_max_hc_size;
 #endif /* GC_PROF */
 
 /*

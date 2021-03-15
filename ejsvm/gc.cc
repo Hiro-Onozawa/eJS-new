@@ -87,6 +87,7 @@ uint64_t pertype_live_bytes[256];
 uint64_t pertype_live_count[256];
 uint64_t pertype_collect_bytes[256];
 uint64_t pertype_collect_count[256];
+size_t gc_max_hc_size = 0;
 
 const char *cell_type_name[NUM_DEFINED_CELL_TYPES + 1] = {
     /* 00 */ "free",
@@ -182,6 +183,9 @@ void* gc_malloc(Context *ctx, uintptr_t request_bytes, cell_type_t type)
     total_alloc_count++;
     pertype_alloc_bytes[type] += bytes;
     pertype_alloc_count[type]++;
+    if (is_hidden_class(type))
+      if(gc_max_hc_size < bytes)
+        gc_max_hc_size = bytes;
   }
 #endif /* GC_PROF */
   return addr;

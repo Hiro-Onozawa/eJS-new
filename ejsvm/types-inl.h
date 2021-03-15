@@ -51,6 +51,23 @@ static inline uintjsv_t get_ptag_value_by_cell_type(cell_type_t type)
     }
 };
 
+static inline int is_hidden_class(cell_type_t type)
+{
+  switch(type) {
+  case CELLT_TRANSITIONS:
+  case CELLT_HASHTABLE:
+  case CELLT_HASH_BODY:
+  case CELLT_HASH_CELL:
+  case CELLT_PROPERTY_MAP:
+  case CELLT_SHAPE:
+  case CELLT_UNWIND:
+  case CELLT_PROPERTY_MAP_LIST:
+    return 1;
+  default:
+    return 0;
+  }
+}
+
 /*
  * Type conversion from/to JSValue
  */

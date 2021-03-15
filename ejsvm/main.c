@@ -243,6 +243,8 @@ void print_gc_prof()
              generation > 1 ? pertype_collect_count[i] / (generation - 1) : 0);
       printf("%s\n", CELLT_NAME(i));
     }
+
+  printf("max hc : %zu\n", gc_max_hc_size);
 }
 #endif /* GC_PROF */
 
