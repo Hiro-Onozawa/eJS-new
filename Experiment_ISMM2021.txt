@@ -1,0 +1,56 @@
+# 利用するリポジトリとコミットハッシュ
+# ejs : ssh://git@spa.info.kochi-tech.ac.jp/ejs/ejs 83d28bba0638bbfd67162a5b74a45f653992b162
+# benchmark : ssh://git@spa.info.kochi-tech.ac.jp/ejs/benchmark 3d91900cafe86301524a005974a7068b4c5a21fd
+
+
+mkdir ismm2021
+pushd ismm2021
+
+# ejs リポジトリの用意
+git clone ssh://git@spa.info.kochi-tech.ac.jp/ejs/ejs
+pushd ejs
+git checkout 83d28bba0638bbfd67162a5b74a45f653992b162
+popd
+
+# benchmark リポジトリの用意
+git clone ssh://git@spa.info.kochi-tech.ac.jp/ejs/benchmark
+pushd benchmark
+git checkout 3d91900cafe86301524a005974a7068b4c5a21fd
+pushd object-model
+
+# x64 で 一式測定する
+./run.sh
+
+# RP で 一式測定する (1台目)
+./run_RP_1.sh
+# RP で 一式測定する (2台目)
+./run_RP_2.sh
+
+# x86 で 一式測定する
+./run_x86.sh
+
+
+# 以下は最大メタオブジェクトサイズの測定
+# 一式測定により yaml/Benchmarks(_XXX)-twice.yaml が生成されている前提
+
+# x64
+python3 script/make-vmmf.py --type x64 --vms yaml/Vms_gcprof.yaml --benches yaml/Benchmarks-twice.yaml
+make -s -f vms.mk && make -s -j -f bc.mk all
+./test.sh -n 1
+echo "最大メタオブジェクトサイズ (byte)" `grep "max hc" vms/threaded-bt-gc-prof/result/* | cut -d " " -f 4 | sort -n | tail -n 1`
+
+# RP
+python3 script/make-vmmf.py --type RaspberryPi --vms yaml/Vms_RP_gcprof.yaml --benches yaml/Benchmarks_RP-twice.yaml
+make -s -f vms_RP.mk && make -s -j -f bc_RP.mk all
+./test_RP.sh -n 1
+echo "最大メタオブジェクトサイズ (byte)" `grep "max hc" vms_RP/threaded-bt-gc-prof/result/* | cut -d " " -f 4 | sort -n | tail -n 1`
+
+# x86
+python3 script/make-vmmf.py --type x86 --vms yaml/Vms_x86_gcprof.yaml --benches yaml/Benchmarks_x86-twice.yaml
+make -s -f vms_x86.mk && make -s -j -f bc_x86.mk all
+./test_x86.sh -n 1
+echo "最大メタオブジェクトサイズ (byte)" `grep "max hc" vms_x86/threaded-bt-gc-prof/result/* | cut -d " " -f 4 | sort -n | tail -n 1`
+
+popd
+popd
+popd
