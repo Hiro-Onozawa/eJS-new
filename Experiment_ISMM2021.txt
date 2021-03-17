@@ -1,10 +1,15 @@
 # 利用するリポジトリとコミットハッシュ
-# ejs : ssh://git@spa.info.kochi-tech.ac.jp/ejs/ejs 83d28bba0638bbfd67162a5b74a45f653992b162
-# benchmark : ssh://git@spa.info.kochi-tech.ac.jp/ejs/benchmark 3d91900cafe86301524a005974a7068b4c5a21fd
+# ejs : ssh://git@spa.info.kochi-tech.ac.jp/ejs/ejs 83d28bba0638bbfd67162a5b74a45f653992b162 (origin/ismm2021-eval)
+# benchmark : ssh://git@spa.info.kochi-tech.ac.jp/ejs/benchmark d9918e5d29d857a1400adf4693ec352126343173 (origin/onozawa-ismm2021)
 
 
+# 実験用ディレクトリの作成
 mkdir ismm2021
 pushd ismm2021
+
+
+# 必要なファイルの用意
+# 実行内容はx64 環境でもRP環境でも同じ
 
 # ejs リポジトリの用意
 git clone ssh://git@spa.info.kochi-tech.ac.jp/ejs/ejs
@@ -17,6 +22,15 @@ git clone ssh://git@spa.info.kochi-tech.ac.jp/ejs/benchmark
 pushd benchmark
 git checkout 3d91900cafe86301524a005974a7068b4c5a21fd
 pushd object-model
+
+
+# 下限ヒープサイズと実行時間の測定
+# 実行環境ごとに異なるスクリプトを使用する
+# ejsvm のビルドから測定結果の保存(.tar.gzの出力)までを行う
+# 測定結果の集計は別 (後に示す)
+# 測定結果を適切に再配置して集計用スクリプトに与えることで
+# 結果の集計が行われる
+# x86 用は、作成はしてあるが集計用スクリプトは未対応
 
 # x64 で 一式測定する
 ./run.sh
@@ -31,7 +45,7 @@ pushd object-model
 
 
 # 以下は最大メタオブジェクトサイズの測定
-# 一式測定により yaml/Benchmarks(_XXX)-twice.yaml が生成されている前提
+# 一式測定により yaml/Benchmarks(_XXX)-twice.yaml が生成されている必要がある
 
 # x64
 python3 script/make-vmmf.py --type x64 --vms yaml/Vms_gcprof.yaml --benches yaml/Benchmarks-twice.yaml
@@ -54,3 +68,42 @@ echo "最大メタオブジェクトサイズ (byte)" `grep "max hc" vms_x86/thr
 popd
 popd
 popd
+
+
+# 実行結果の集計 (一部内容のみ記載)
+# 以下、測定結果一式をセットと呼ぶ
+# セット名は <set name> と表す
+# 実行環境は <env name> と表す (x64, RP)
+
+# 1. ismm2021/benchmark/object-model/results へ移動
+
+# 2. セット用ディレクトリの作成
+./make_dirs <set name>
+
+# 3. 実行結果をまとめた4種類の *.tar.gz を実行環境ごとに
+#  ./sets/<set name>/tardata/<env name>/ 以下へ配置
+
+# 4. 2種類のベンチマークコンフィグ
+#  Benchmarks{,_RP}_base.yaml, Benchmarks{,_RP}_twice.yaml を
+#  ./sets/<set name>/yaml/Benchmarks_<env name>_500M.yaml,
+#  ./sets/<set name>/yaml/Benchmarks_<env name>_twice.yaml
+#  とリネームして配置
+# RPは2台で分業しているので、ファイル名に _A, _B のプレフィックスをつける
+
+# 5. ここまでで、以下のようになれば良い
+# $ ls sets/main/{tardata/*/,yaml/}
+# sets/main/tardata/RP/:
+# 20210307-042215-base.tar.gz  20210307-065059-bin_min_heap_result.tar.gz  20210307-115220-twice.tar.gz  20210307-151310-twice-2.tar.gz
+# 20210307-045831-base.tar.gz  20210307-101149-bin_min_heap_result.tar.gz  20210307-151050-twice.tar.gz  20210307-173921-twice-2.tar.gz
+#
+# sets/main/tardata/x64/:
+# 20210307-013059-base.tar.gz  20210307-022926-bin_min_heap_result.tar.gz  20210307-042815-twice.tar.gz  20210307-055024-twice-2.tar.gz
+#
+# sets/main/yaml/:
+# Benchmarks_RP_500M_A.yaml  Benchmarks_RP_twice_A.yaml  Benchmarks_x64_500M.yaml
+# Benchmarks_RP_500M_B.yaml  Benchmarks_RP_twice_B.yaml  Benchmarks_x64_twice.yaml
+
+# 6. 集計用スクリプト一式を実行 (1分前後かかる)
+./run_all <set name>
+
+# これで集計結果が ./sets/<set name>/extracted/ 以下に生成される
