@@ -1,6 +1,12 @@
 # 利用するリポジトリとコミットハッシュ
+#
+# 最終原稿
 # ejs : ssh://git@spa.info.kochi-tech.ac.jp/ejs/ejs 83d28bba0638bbfd67162a5b74a45f653992b162 (origin/ismm2021-eval)
-# benchmark : ssh://git@spa.info.kochi-tech.ac.jp/ejs/benchmark d9918e5d29d857a1400adf4693ec352126343173 (origin/onozawa-ismm2021)
+# benchmark : ssh://git@spa.info.kochi-tech.ac.jp/ejs/benchmark 8baa87fbe2ca850af797651b98891421a5f43841 (origin/onozawa-ismm2021)
+#
+# 投稿版
+# ejs : ssh://git@spa.info.kochi-tech.ac.jp/ejs/ejs 83d28bba0638bbfd67162a5b74a45f653992b162 (origin/ismm2021-eval)
+# benchmark : ssh://git@spa.info.kochi-tech.ac.jp/ejs/benchmark d9918e5d29d857a1400adf4693ec352126343173
 
 
 # 実験用ディレクトリの作成
@@ -20,16 +26,20 @@ popd
 # benchmark リポジトリの用意
 git clone ssh://git@spa.info.kochi-tech.ac.jp/ejs/benchmark
 pushd benchmark
-git checkout 3d91900cafe86301524a005974a7068b4c5a21fd
+git checkout 8baa87fbe2ca850af797651b98891421a5f43841
 pushd object-model
 
 
 # 下限ヒープサイズと実行時間の測定
 # 実行環境ごとに異なるスクリプトを使用する
 # ejsvm のビルドから測定結果の保存(.tar.gzの出力)までを行う
+# 最終原稿版では、タイムアウトするもの(括弧付きの値)以外は、
+# 予め求めた下限ヒープサイズをスクリプト内部で利用している
+#
 # 測定結果の集計は別 (後に示す)
 # 測定結果を適切に再配置して集計用スクリプトに与えることで
 # 結果の集計が行われる
+#
 # x86 用は、作成はしてあるが集計用スクリプトは未対応
 
 # x64 で 一式測定する
@@ -46,6 +56,7 @@ pushd object-model
 
 # 以下は最大メタオブジェクトサイズの測定
 # 一式測定により yaml/Benchmarks(_XXX)-twice.yaml が生成されている必要がある
+# 最終原稿版では -twice.yaml は存在しないため、同等の -2.0.yaml を利用すると良い
 
 # x64
 python3 script/make-vmmf.py --type x64 --vms yaml/Vms_gcprof.yaml --benches yaml/Benchmarks-twice.yaml
@@ -83,14 +94,18 @@ popd
 # 3. 実行結果をまとめた4種類の *.tar.gz を実行環境ごとに
 #  ./sets/<set name>/tardata/<env name>/ 以下へ配置
 
-# 4. 2種類のベンチマークコンフィグ
-#  Benchmarks{,_RP}_base.yaml, Benchmarks{,_RP}_twice.yaml を
+# 4. ベンチマークコンフィグの用意
+#  投稿版では Benchmarks{,_RP}_base.yaml, Benchmarks{,_RP}_twice.yaml を
 #  ./sets/<set name>/yaml/Benchmarks_<env name>_500M.yaml,
 #  ./sets/<set name>/yaml/Benchmarks_<env name>_twice.yaml
 #  とリネームして配置
-# RPは2台で分業しているので、ファイル名に _A, _B のプレフィックスをつける
+# 最終原稿版では Benchmarks{,_RP}_{1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5,5.0,5.5,6.0}.yaml を
+#  ./sets/<set name>/yaml/Benchmarks_<env name>_<scale>.yaml
+#  とリネームして配置
+# RPは2台で分業しているので、ファイル名に _A, _B のサフィックスをつける
 
 # 5. ここまでで、以下のようになれば良い
+# 投稿版
 # $ ls sets/main/{tardata/*/,yaml/}
 # sets/main/tardata/RP/:
 # 20210307-042215-base.tar.gz  20210307-065059-bin_min_heap_result.tar.gz  20210307-115220-twice.tar.gz  20210307-151310-twice-2.tar.gz
@@ -102,8 +117,35 @@ popd
 # sets/main/yaml/:
 # Benchmarks_RP_500M_A.yaml  Benchmarks_RP_twice_A.yaml  Benchmarks_x64_500M.yaml
 # Benchmarks_RP_500M_B.yaml  Benchmarks_RP_twice_B.yaml  Benchmarks_x64_twice.yaml
+#
+# 最終原稿版
+# $ ls sets/main_revised/{tardata/*/,yaml/}
+# sets/main_revised/tardata/RP/:
+# 20210501-161745-bin_min_heap_result.tar.gz  20210503-061258-1.5.tar.gz  20210503-193712-3.5.tar.gz
+# 20210501-163913-bin_min_heap_result.tar.gz  20210503-064201-4.0.tar.gz  20210503-210927-4.0.tar.gz
+# 20210502-071647-1.0.tar.gz                  20210503-074937-4.5.tar.gz  20210503-224103-4.5.tar.gz
+# 20210502-071841-1.0.tar.gz                  20210503-085630-5.0.tar.gz  20210504-001141-5.0.tar.gz
+# 20210503-012616-1.5.tar.gz                  20210503-100326-5.5.tar.gz  20210504-013831-5.5.tar.gz
+# 20210503-022547-2.0.tar.gz                  20210503-111045-6.0.tar.gz  20210504-031141-6.0.tar.gz
+# 20210503-033715-2.5.tar.gz                  20210503-112504-2.0.tar.gz  20210511-100214-1.5.tar.gz
+# 20210503-043647-3.0.tar.gz                  20210503-162203-2.5.tar.gz  20210504-093710-1.5.tar.gz                                                        
+# 20210503-053350-3.5.tar.gz                  20210503-180314-3.0.tar.gz  
+# 
+# sets/main_revised/tardata/x64/:
+# 20210501-121801-bin_min_heap_result.tar.gz  20210503-024332-2.5.tar.gz  20210503-053850-4.5.tar.gz  20210503-090243-1.5.tar.gz
+# 20210502-111432-1.0.tar.gz                  20210503-032726-3.0.tar.gz  20210503-062155-5.0.tar.gz
+# 20210503-011136-1.5.tar.gz                  20210503-041125-3.5.tar.gz  20210503-070448-5.5.tar.gz
+# 20210503-015615-2.0.tar.gz                  20210503-045514-4.0.tar.gz  20210503-074752-6.0.tar.gz
+# 
+# sets/main_revised/yaml/:
+# Benchmarks_RP_1.0_A.yaml  Benchmarks_RP_2.0_B.yaml  Benchmarks_RP_3.5_A.yaml  Benchmarks_RP_4.5_B.yaml  Benchmarks_RP_6.0_A.yaml  Benchmarks_x64_2.5.yaml  Benchmarks_x64_5.0.yaml
+# Benchmarks_RP_1.0_B.yaml  Benchmarks_RP_2.5_A.yaml  Benchmarks_RP_3.5_B.yaml  Benchmarks_RP_5.0_A.yaml  Benchmarks_RP_6.0_B.yaml  Benchmarks_x64_3.0.yaml  Benchmarks_x64_5.5.yaml
+# Benchmarks_RP_1.5_A.yaml  Benchmarks_RP_2.5_B.yaml  Benchmarks_RP_4.0_A.yaml  Benchmarks_RP_5.0_B.yaml  Benchmarks_x64_1.0.yaml   Benchmarks_x64_3.5.yaml  Benchmarks_x64_6.0.yaml
+# Benchmarks_RP_1.5_B.yaml  Benchmarks_RP_3.0_A.yaml  Benchmarks_RP_4.0_B.yaml  Benchmarks_RP_5.5_A.yaml  Benchmarks_x64_1.5.yaml   Benchmarks_x64_4.0.yaml
+# Benchmarks_RP_2.0_A.yaml  Benchmarks_RP_3.0_B.yaml  Benchmarks_RP_4.5_A.yaml  Benchmarks_RP_5.5_B.yaml  Benchmarks_x64_2.0.yaml   Benchmarks_x64_4.5.yaml
 
 # 6. 集計用スクリプト一式を実行 (1分前後かかる)
 ./run_all <set name>
 
 # これで集計結果が ./sets/<set name>/extracted/ 以下に生成される
+# グラフは ./sets/<set name>/images 以下に生成される
